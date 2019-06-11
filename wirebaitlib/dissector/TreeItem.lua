@@ -132,11 +132,18 @@ function TreeItemClass.new(protofield_or_buffer, buffer, parent)
         assert(buffer or value, "Bug in this function, buffer and value cannot be both nil!");
 
         local child_tree = TreeItemClass.new(protofield, buffer, tree);
-        if texts then --texts override the value displayed in the tree including the header defined in the protofield
-            child_tree.m_text = tostring(prefix(tree.m_depth) .. table.concat(texts, " "));
-        else
-            local printed_value = tostring(value or protofield:getDisplayValueFromBuffer(buffer)) -- buffer(0, size):bytes()
-            child_tree.m_text = tostring(prefix(tree.m_depth) .. protofield:getMaskPrefix(buffer) .. protofield.m_name .. ": " .. printed_value); --TODO review the or buffer:len
+        local printed_value = tostring(value or protofield:getDisplayValueFromBuffer(buffer)) -- buffer(0, size):bytes()
+        child_tree.m_text = tostring(prefix(tree.m_depth) .. protofield:getMaskPrefix(buffer) .. protofield.m_name .. ": " .. printed_value); --TODO review the or buffer:len
+        if texts then --texts overrides or appends to the value displayed in the tree including the header defined in the protofield
+            local value_text = {};
+            for k, v in pairs(texts) do
+                  table.insert(value_text, v) -- skip and eliminate nil values
+            end
+            if texts[1] then -- override mode
+                child_tree.m_text = tostring(prefix(tree.m_depth) .. table.concat(value_text, " "));
+            else -- append mode if texts[1] is nil
+                child_tree.m_text = child_tree.m_text .. " ".. table.concat(value_text, " ");
+            end
         end
         return child_tree;
     end
